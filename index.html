@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dr. [Your Name] — Calculus of Variations</title>
+
+  <!-- ============================================================
+       MATH RENDERING — MathJax 3
+       Usage anywhere in the HTML:
+         Inline:   \( f(x) \)
+         Display:  \[ \int_{a}^{b} L(x,y,y')\,dx \]
+  ============================================================ -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath:  [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        tags: 'ams'
+      },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+  <!-- ============================================================
+       FONTS
+       Cormorant Garant — display headings (elegant, scholarly)
+       EB Garamond      — body text (classical serif, readable)
+       DM Sans          — UI labels, nav (clean neutral sans)
+  ============================================================ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- ============================================================
+       MOBILE HAMBURGER BUTTON
+  ============================================================ -->
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- ============================================================
+       LEFT SIDEBAR
+  ============================================================ -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Identity block -->
+    <div class="sidebar-identity">
+      <div class="headshot-wrap">
+        <!-- Replace src with your actual photo -->
+        <img src="https://placehold.co/160x160/e8e2d9/0d1b2a?text=Photo" alt="Headshot of Dr. [Your Name]" class="headshot" />
+      </div>
+      <h1 class="sidebar-name">Dr. [Your Name]</h1>
+      <p class="sidebar-title">PhD in Calculus<br>of Variations</p>
+      <p class="sidebar-affiliation">[University / Institution]</p>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="#about"        class="nav-link" data-section="about">About</a></li>
+        <li><a href="#publications" class="nav-link" data-section="publications">Publications</a></li>
+        <li><a href="#teaching"     class="nav-link" data-section="teaching">Teaching</a></li>
+        <li><a href="#cv"           class="nav-link" data-section="cv">Curriculum Vitae</a></li>
+      </ul>
+    </nav>
+
+    <!-- Contact / Social -->
+    <div class="sidebar-contact">
+      <a href="mailto:your.email@university.edu" class="contact-link">your.email@university.edu</a>
+      <div class="social-links">
+        <a href="https://scholar.google.com" target="_blank" rel="noopener" class="social-btn">Google Scholar</a>
+        <a href="https://arxiv.org"          target="_blank" rel="noopener" class="social-btn">arXiv</a>
+        <a href="https://github.com"         target="_blank" rel="noopener" class="social-btn">GitHub</a>
+      </div>
+    </div>
+
+    <!-- Decorative math watermark -->
+    <div class="sidebar-watermark" aria-hidden="true">\(\delta \mathcal{F} = 0\)</div>
+
+  </aside>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ——————————————————————————————————————————
+         SECTION 1 · ABOUT
+    —————————————————————————————————————————— -->
+    <section id="about" class="section">
+      <div class="section-label">01</div>
+      <h2 class="section-title">About Me</h2>
+
+      <div class="about-grid">
+        <div class="about-bio">
+          <p class="lead">
+            I am a mathematician working at the intersection of
+            <em>Calculus of Variations</em>, geometric measure theory, and
+            partial differential equations.
+          </p>
+          <p>
+            My research focuses on existence, regularity, and qualitative
+            properties of minimizers for variational integrals of the form
+            \[
+              \mathcal{F}[u] = \int_{\Omega} F\!\left(x,\, u(x),\, \nabla u(x)\right) dx,
+            \]
+            where \(F\) satisfies general growth and coercivity conditions.
+            I am particularly interested in cases where the integrand
+            \(F(\xi)\) is <em>quasiconvex but not polyconvex</em>, leading
+            to subtle relaxation phenomena.
+          </p>
+          <p>
+            Before joining [University], I held postdoctoral positions at
+            [Institution A] and [Institution B]. I completed my PhD at
+            [PhD Institution] under the supervision of
+            [Supervisor Name].
+          </p>
+        </div>
+
+        <div class="about-interests">
+          <h3 class="subsection-title">Research Interests</h3>
+          <ul class="interest-list">
+            <li>Direct methods in the calculus of variations</li>
+            <li>Lower semicontinuity and relaxation</li>
+            <li>Regularity theory for elliptic systems</li>
+            <li>Geometric measure theory &amp; currents</li>
+            <li>Gamma-convergence and homogenization</li>
+            <li>Optimal transport &amp; Wasserstein geometry</li>
+            <li>Free-boundary problems</li>
+          </ul>
+
+          <h3 class="subsection-title" style="margin-top: 2rem;">A Favourite Result</h3>
+          <div class="theorem-box">
+            <span class="theorem-label">Theorem (Morrey, 1952)</span>
+            <p>
+              A continuous function \(F\colon \mathbb{R}^{m\times n}\to\mathbb{R}\)
+              is <em>quasiconvex</em> if and only if for every open bounded
+              \(\Omega\subset\mathbb{R}^n\) and every \(\varphi\in W^{1,\infty}_0(\Omega;\mathbb{R}^m)\),
+              \[
+                F(A)\,|\Omega| \;\leq\; \int_\Omega F\!\left(A + \nabla\varphi(x)\right)dx.
+              \]
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ——————————————————————————————————————————
+         SECTION 2 · PUBLICATIONS
+    —————————————————————————————————————————— -->
+    <section id="publications" class="section">
+      <div class="section-label">02</div>
+      <h2 class="section-title">Publications</h2>
+
+      <div class="pub-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="journal">Journal Articles</button>
+        <button class="filter-btn" data-filter="preprint">Preprints</button>
+        <button class="filter-btn" data-filter="proceedings">Proceedings</button>
+      </div>
+
+      <ol class="pub-list" reversed>
+
+        <!-- ·· JOURNAL ARTICLE ·· -->
+        <li class="pub-item" data-type="journal">
+          <div class="pub-meta">
+            <span class="pub-year">2024</span>
+            <span class="pub-badge journal">Journal</span>
+          </div>
+          <p class="pub-title">
+            Regularity of Minimizers for a Class of Anisotropic Free-Discontinuity Functionals
+          </p>
+          <p class="pub-authors">
+            <strong>[Your Name]</strong>, J. Coauthor, &amp; M. Collaborator
+          </p>
+          <p class="pub-venue">
+            <em>Archive for Rational Mechanics and Analysis</em>, vol.&nbsp;248, pp.&nbsp;1–54
+          </p>
+          <p class="pub-abstract">
+            We prove partial regularity for local minimizers of the functional
+            \(\mathcal{F}[u] = \int_\Omega |Du|^p\,dx + \mathcal{H}^{n-1}(S_u)\)
+            under \((p,q)\)-growth conditions on the bulk energy density…
+          </p>
+          <div class="pub-links">
+            <a href="path/to/paper.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download PDF
+            </a>
+            <a href="https://doi.org/10.xxxx/xxxxx" target="_blank" rel="noopener" class="btn btn-doi">DOI</a>
+          </div>
+        </li>
+
+        <!-- ·· PREPRINT ·· -->
+        <li class="pub-item" data-type="preprint">
+          <div class="pub-meta">
+            <span class="pub-year">2024</span>
+            <span class="pub-badge preprint">Preprint</span>
+          </div>
+          <p class="pub-title">
+            Gamma-Convergence of Nonlocal Functionals Depending on Vector Fields
+          </p>
+          <p class="pub-authors"><strong>[Your Name]</strong> &amp; A. Coauthor</p>
+          <p class="pub-venue"><em>arXiv preprint</em> 2401.XXXXX</p>
+          <p class="pub-abstract">
+            We study the \(\Gamma\)-limit as \(\varepsilon\to 0\) of the family
+            \(\mathcal{F}_\varepsilon[u]=\int_\Omega W\!\left(\frac{u}{\varepsilon},\nabla u\right)dx\)
+            subject to a divergence-free constraint \(\operatorname{div}(A(x)u)=0\)…
+          </p>
+          <div class="pub-links">
+            <a href="path/to/preprint.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download PDF
+            </a>
+          </div>
+        </li>
+
+        <!-- ·· JOURNAL ARTICLE ·· -->
+        <li class="pub-item" data-type="journal">
+          <div class="pub-meta">
+            <span class="pub-year">2023</span>
+            <span class="pub-badge journal">Journal</span>
+          </div>
+          <p class="pub-title">
+            Quasiconvexity at the Boundary and the Validity of the Euler–Lagrange Equation
+          </p>
+          <p class="pub-authors"><strong>[Your Name]</strong></p>
+          <p class="pub-venue">
+            <em>Journal of Functional Analysis</em>, vol.&nbsp;285, no.&nbsp;4, 109975
+          </p>
+          <p class="pub-abstract">
+            We show that if \(u_0\in W^{1,p}(\Omega)\) is a strong local minimizer
+            of a functional satisfying \(p\)-growth, then the Euler–Lagrange
+            system \(\operatorname{div} D_\xi F(\nabla u)=0\) holds in the sense
+            of distributions without additional convexity assumptions…
+          </p>
+          <div class="pub-links">
+            <a href="path/to/paper2.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download PDF
+            </a>
+            <a href="https://doi.org/10.xxxx/xxxxx" target="_blank" rel="noopener" class="btn btn-doi">DOI</a>
+          </div>
+        </li>
+
+        <!-- ·· PROCEEDINGS ·· -->
+        <li class="pub-item" data-type="proceedings">
+          <div class="pub-meta">
+            <span class="pub-year">2022</span>
+            <span class="pub-badge proceedings">Proceedings</span>
+          </div>
+          <p class="pub-title">
+            Lavrentiev Phenomenon for Non-Autonomous Functionals with Unbounded Coefficients
+          </p>
+          <p class="pub-authors"><strong>[Your Name]</strong>, B. Author, &amp; C. Author</p>
+          <p class="pub-venue">
+            <em>Proceedings of the Royal Society of Edinburgh A</em>, vol.&nbsp;152, pp.&nbsp;1640–1666
+          </p>
+          <p class="pub-abstract">
+            We construct examples demonstrating the Lavrentiev gap for integrals
+            \(\int_0^1 a(x)|u'|^{p(x)}dx\) when the variable exponent \(p(x)\)
+            fails the log-Hölder continuity condition at an isolated point…
+          </p>
+          <div class="pub-links">
+            <a href="path/to/paper3.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download PDF
+            </a>
+            <a href="https://doi.org/10.xxxx/xxxxx" target="_blank" rel="noopener" class="btn btn-doi">DOI</a>
+          </div>
+        </li>
+
+      </ol>
+    </section>
+
+    <!-- ——————————————————————————————————————————
+         SECTION 3 · TEACHING & LECTURES
+    —————————————————————————————————————————— -->
+    <section id="teaching" class="section">
+      <div class="section-label">03</div>
+      <h2 class="section-title">Teaching &amp; Lectures</h2>
+
+      <h3 class="subsection-title">Courses Taught</h3>
+      <div class="teaching-grid">
+
+        <div class="course-card">
+          <div class="course-meta">
+            <span class="course-term">Spring 2024</span>
+            <span class="course-level">Graduate</span>
+          </div>
+          <h4 class="course-name">Calculus of Variations I</h4>
+          <p class="course-inst">[University] · [Department]</p>
+          <p class="course-desc">
+            Direct methods, weak lower semicontinuity, coercivity,
+            Euler–Lagrange equations, regularity of minimizers.
+            Topics include the Fundamental Lemma of CoV and the
+            Weierstrass necessary conditions.
+          </p>
+          <div class="pub-links">
+            <a href="path/to/notes.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download Lecture Notes
+            </a>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-meta">
+            <span class="course-term">Fall 2023</span>
+            <span class="course-level">Graduate</span>
+          </div>
+          <h4 class="course-name">Sobolev Spaces &amp; Elliptic PDE</h4>
+          <p class="course-inst">[University] · [Department]</p>
+          <p class="course-desc">
+            \(W^{k,p}\) spaces, traces, extension theorems, Poincaré and
+            Morrey embeddings. Lax–Milgram, Fredholm alternative,
+            de Giorgi–Nash–Moser theory.
+          </p>
+          <div class="pub-links">
+            <a href="path/to/notes2.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download Lecture Notes
+            </a>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-meta">
+            <span class="course-term">Spring 2023</span>
+            <span class="course-level">Undergraduate</span>
+          </div>
+          <h4 class="course-name">Real Analysis</h4>
+          <p class="course-inst">[University] · [Department]</p>
+          <p class="course-desc">
+            Lebesgue measure and integration, \(L^p\) spaces,
+            Radon–Nikodym theorem, Fourier analysis, introduction to
+            functional analysis.
+          </p>
+          <div class="pub-links">
+            <a href="path/to/notes3.pdf" class="btn btn-pdf" download>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+              Download Lecture Notes
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <h3 class="subsection-title" style="margin-top: 3.5rem;">Invited Talks &amp; Mini-Courses</h3>
+      <div class="talk-list">
+
+        <div class="talk-item">
+          <div class="talk-date">Nov 2024</div>
+          <div class="talk-body">
+            <p class="talk-title">Relaxation of Functionals with Linear Growth in Geometric Measure Theory</p>
+            <p class="talk-venue">Workshop on Variational Methods in Materials Science · [City]</p>
+            <div class="pub-links">
+              <a href="path/to/slides.pdf" class="btn btn-pdf" download>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+                Download Slides
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="talk-item">
+          <div class="talk-date">Jun 2024</div>
+          <div class="talk-body">
+            <p class="talk-title">Quasiconvexity, Rank-One Convexity, and the Distance Between Them</p>
+            <p class="talk-venue">Analysis Seminar · [University Name]</p>
+            <div class="pub-links">
+              <a href="path/to/slides2.pdf" class="btn btn-pdf" download>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+                Download Slides
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="talk-item">
+          <div class="talk-date">Mar 2023</div>
+          <div class="talk-body">
+            <p class="talk-title">Mini-Course: Introduction to \(\Gamma\)-Convergence (3 Lectures)</p>
+            <p class="talk-venue">Spring School in Analysis · [Institution]</p>
+            <div class="pub-links">
+              <a href="path/to/minicourse.pdf" class="btn btn-pdf" download>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+                Download Notes
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ——————————————————————————————————————————
+         SECTION 4 · CURRICULUM VITAE
+    —————————————————————————————————————————— -->
+    <section id="cv" class="section">
+      <div class="section-label">04</div>
+      <h2 class="section-title">Curriculum Vitae</h2>
+
+      <div class="cv-download-wrap">
+        <p>A full PDF version of my curriculum vitae is available below.</p>
+        <a href="path/to/cv.pdf" class="btn btn-pdf btn-cv" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>
+          Download Full CV
+        </a>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline">
+
+        <h3 class="subsection-title">Academic Positions</h3>
+
+        <div class="timeline-track">
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2022 — present</span>
+              <h4 class="tl-role">Assistant Professor</h4>
+              <p class="tl-place">[Department of Mathematics] · [University]</p>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2020 — 2022</span>
+              <h4 class="tl-role">Postdoctoral Researcher</h4>
+              <p class="tl-place">[Institute / University A] — supervised by [Name]</p>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2018 — 2020</span>
+              <h4 class="tl-role">Postdoctoral Fellow</h4>
+              <p class="tl-place">[Institute / University B]</p>
+            </div>
+          </div>
+
+        </div>
+
+        <h3 class="subsection-title" style="margin-top:2.5rem;">Education</h3>
+        <div class="timeline-track">
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2015 — 2018</span>
+              <h4 class="tl-role">PhD in Mathematics</h4>
+              <p class="tl-place">
+                [PhD University] — Advisor: [Prof. Name]<br>
+                <em>Thesis: "Regularity and Relaxation in the Calculus of Variations"</em>
+              </p>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2013 — 2015</span>
+              <h4 class="tl-role">MSc in Mathematics</h4>
+              <p class="tl-place">[University]</p>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2010 — 2013</span>
+              <h4 class="tl-role">BSc in Mathematics</h4>
+              <p class="tl-place">[University] — First Class Honours</p>
+            </div>
+          </div>
+
+        </div>
+
+        <h3 class="subsection-title" style="margin-top:2.5rem;">Grants &amp; Awards</h3>
+        <div class="timeline-track">
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2023</span>
+              <h4 class="tl-role">[Grant Name] — €[Amount]</h4>
+              <p class="tl-place">[Funding Agency]</p>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <span class="tl-year">2021</span>
+              <h4 class="tl-role">[Prize Name]</h4>
+              <p class="tl-place">[Awarding Institution / Society]</p>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /.timeline -->
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <p>
+        &copy; <span id="year"></span> Dr. [Your Name].
+        Built with plain HTML &amp; CSS.
+        Rendered with <a href="https://www.mathjax.org" target="_blank" rel="noopener">MathJax</a>.
+      </p>
+    </footer>
+
+  </main><!-- /.main-content -->
+
+  <!-- ============================================================
+       MINIMAL JS — nav highlight + filter + mobile toggle + year
+  ============================================================ -->
+  <script>
+    // ── Active nav link on scroll ──
+    const sections  = document.querySelectorAll('.section');
+    const navLinks  = document.querySelectorAll('.nav-link');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector(`.nav-link[data-section="${id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+
+    // ── Publication filter ──
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const pubItems   = document.querySelectorAll('.pub-item');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        pubItems.forEach(item => {
+          item.style.display = (filter === 'all' || item.dataset.type === filter) ? '' : 'none';
+        });
+      });
+    });
+
+    // ── Mobile nav toggle ──
+    const toggle  = document.getElementById('navToggle');
+    const sidebar = document.getElementById('sidebar');
+
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      toggle.classList.toggle('open');
+    });
+
+    // Close sidebar when a nav link is clicked on mobile
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        toggle.classList.remove('open');
+      });
+    });
+
+    // ── Footer year ──
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
