@@ -48,7 +48,7 @@ your-repo/
 ├── nav.js                ← Shared sidebar, mobile header, theme toggle
 │
 ├── assets/
-│   └── photo.jpg         ← Your profile photo (you must add this)
+│   └── photo.png         ← Your profile photo (you must add this)
 │
 └── files/
     ├── cv_pignatelli.pdf
@@ -88,9 +88,9 @@ npx serve .
 ## Adding Your Photo
 
 1. Create a folder named `assets` in the root of the repository.
-2. Save your photo inside it as `photo.jpg`.
+2. Save your photo inside it as `photo.png`.
    - Any square crop works best; minimum recommended size is **400 × 400 px**.
-   - The file name must be exactly `photo.jpg` (lowercase).
+   - The file name must be exactly `photo.png` (lowercase).
 3. That's it — no code changes needed.
 
 Your photo appears in three places automatically:
@@ -487,7 +487,7 @@ MathJax is only loaded on pages that include the config+script snippet (`about.h
 | Change body font | `styles.css` — `font-family` on `body`, and update the Google Fonts import |
 | Add LaTeX to a page that doesn't have it yet | Add the MathJax `<script>` tags to that page's `<head>` |
 | Update social links in the sidebar | `nav.js` — `buildSidebar()` function |
-| Update your profile photo | Replace `assets/photo.jpg` |
+| Update your profile photo | Replace `assets/photo.png` |
 
 ---
 
