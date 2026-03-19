@@ -436,6 +436,7 @@ body.homepage { display:flex; flex-direction:column; align-items:center; }
 .pdf-overlay.open { opacity: 1; pointer-events: all; }
 
 .pdf-modal {
+  pointer-events: none; /* prevent invisible modal blocking clicks when overlay is closed */
   background: var(--bg-card);
   border: 1px solid var(--rule);
   border-radius: 10px;
@@ -447,7 +448,7 @@ body.homepage { display:flex; flex-direction:column; align-items:center; }
   transform: translateY(18px) scale(.98);
   transition: transform .25s ease;
 }
-.pdf-overlay.open .pdf-modal { transform: none; }
+.pdf-overlay.open .pdf-modal { transform: none; pointer-events: auto; }
 
 /* Modal header bar */
 .pdf-modal-bar {
