@@ -6,7 +6,7 @@
  * • Handles dark / light mode (defaults to system preference)
  * • Handles mobile hamburger & click-outside
  *
- * PHOTO: Put your photo at  assets/photo.jpg
+ * PHOTO: Put your photo at  assets/photo.png
  * FILES: Put downloadable files in  files/
  */
 
@@ -81,7 +81,7 @@
       '<div class="sidebar-identity">' +
         '<a href="index.html" class="headshot-link">' +
           '<div class="headshot-wrap">' +
-            '<img src="assets/photo.jpg" alt="Luca Pignatelli" class="headshot"' +
+            '<img src="assets/photo.png" alt="Luca Pignatelli" class="headshot"' +
             ' onerror="this.src=\'https://placehold.co/160x160/e8e2d9/0d1b2a?text=LP\'" />' +
           '</div>' +
         '</a>' +
@@ -124,7 +124,7 @@
         '<span></span><span></span><span></span>' +
       '</button>' +
       '<a href="index.html" class="mob-identity">' +
-        '<img src="assets/photo.jpg" alt="Luca Pignatelli" class="mob-photo"' +
+        '<img src="assets/photo.png" alt="Luca Pignatelli" class="mob-photo"' +
         ' onerror="this.src=\'https://placehold.co/40x40/e8e2d9/0d1b2a?text=LP\'" />' +
         '<div class="mob-id-text">' +
           '<span class="mob-name">Luca Pignatelli</span>' +
