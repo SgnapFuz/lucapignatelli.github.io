@@ -2,7 +2,7 @@
 
 Personal academic website. Built with plain HTML, CSS, and vanilla JavaScript — no frameworks, no build step, no dependencies beyond two CDN-loaded libraries (MathJax and Google Fonts).
 
-Live at: **[your-url-here]**
+Live at: **pignatelliluca.github.io**
 
 ---
 
