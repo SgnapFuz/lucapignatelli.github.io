@@ -164,7 +164,7 @@ em { font-style: italic; }
   color: var(--rule); pointer-events: none; user-select: none;
 }
 
-.main-content { margin-left: 290px; flex: 1; min-width: 0; }
+.main-content { margin-left: 290px; flex: 1; min-width: 0; position: relative; z-index: 0; }
 .page-content {
   max-width: 860px; margin: 0 auto; padding: 5rem 3rem 4rem;
   animation: fadeUp .5s ease forwards;
