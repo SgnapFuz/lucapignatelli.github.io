@@ -201,7 +201,8 @@
     { href: 'cv.html',           label: 'Curriculum Vitae'  },
     { href: 'other.html',        label: 'Other Mathematics' },
     { href: 'misc.html',         label: 'Miscellany'        },
-    { href: 'files.html',        label: 'Files'            },
+    { href: 'games.html',        label: 'Games'             },
+    { href: 'files.html',        label: 'Files'             },
   ];
 
   function getActivePage() {

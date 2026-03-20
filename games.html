@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Games — Luca Pignatelli</title>
+  <script>(function(){ var t=localStorage.getItem('lp-theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); document.documentElement.setAttribute('data-theme',t); })();</script>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Layout ─────────────────────────────────────────────── */
+    .games-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
+    @media(max-width:768px){ .games-grid{ grid-template-columns:1fr; } }
+
+    .game-card {
+      background:var(--bg-card); border:1px solid var(--rule); border-radius:10px;
+      padding:1.1rem; display:flex; flex-direction:column; gap:.7rem;
+    }
+    .game-header { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; }
+    .game-title-txt {
+      font-family:'Cormorant Garant',serif; font-size:1.15rem; font-weight:600;
+      color:var(--ink); flex:1; min-width:0;
+    }
+    .game-stats {
+      font-family:'DM Sans',sans-serif; font-size:.70rem; color:var(--ink-lt);
+      white-space:nowrap;
+    }
+    .game-hint {
+      font-family:'DM Sans',sans-serif; font-size:.70rem; color:var(--ink-lt);
+      margin:0; line-height:1.5;
+    }
+    .game-msg {
+      font-family:'DM Sans',sans-serif; font-size:.78rem; font-weight:500;
+      color:var(--gold); min-height:1.1em; margin:0;
+    }
+    .gm-btn { padding:.26rem .62rem !important; font-size:.62rem !important; }
+
+    /* ── 2048 ────────────────────────────────────────────────── */
+    .g2048-board {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:7px;
+      background:#bbada0; border-radius:6px; padding:7px;
+      user-select:none; touch-action:none;
+    }
+    .g2048-cell {
+      aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+      border-radius:4px; font-family:'DM Sans',sans-serif; font-weight:700;
+      line-height:1; transition:background .08s;
+    }
+
+    /* ── Minesweeper ─────────────────────────────────────────── */
+    .ms-board-wrap { display:flex; justify-content:center; }
+    .ms-board {
+      display:grid; gap:2px; background:var(--rule);
+      border-radius:5px; padding:3px; user-select:none;
+    }
+    .ms-cell {
+      width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+      font-family:'DM Sans',sans-serif; font-size:.72rem; font-weight:700;
+      cursor:pointer; border-radius:2px; background:var(--bg-card-h);
+      transition:background .1s;
+    }
+    .ms-cell:hover:not(.revealed){ background:var(--gold-sub); }
+    .ms-cell.revealed { background:var(--bg); cursor:default; }
+    .ms-cell.mine-hit { background:#e85d4a !important; }
+
+    /* ── Canvas games ────────────────────────────────────────── */
+    #snake-canvas, #life-canvas {
+      display:block; width:100%; border-radius:6px; touch-action:none;
+    }
+    #life-canvas { cursor:crosshair; }
+  </style>
+</head>
+<body>
+
+<header class="mobile-header" id="mobile-header"></header>
+<aside  class="sidebar"       id="sidebar"></aside>
+
+<main class="main-content">
+<div class="page-content">
+
+  <div class="page-label">09</div>
+  <h2 class="page-title">Games</h2>
+
+  <p style="color:var(--ink-mid);font-size:.95rem;margin-bottom:2rem;line-height:1.75;">
+    For when the analysis gets too heavy. High scores are saved in your browser.
+    Hover a game card, then use the keyboard &mdash; or just swipe on mobile.
+  </p>
+
+  <div class="games-grid">
+
+    <!-- ═══════════════════════════════════════════ 2048 -->
+    <div class="game-card" id="card-2048">
+      <div class="game-header">
+        <span class="game-title-txt">2048</span>
+        <span class="game-stats">Score&nbsp;<strong id="g2048-score">0</strong>&emsp;Best&nbsp;<strong id="g2048-best">0</strong></span>
+        <button class="btn btn-outline gm-btn" id="g2048-new">New Game</button>
+      </div>
+      <div id="g2048-board" class="g2048-board"></div>
+      <p class="game-msg" id="g2048-msg"></p>
+      <p class="game-hint">Hover card &rarr; arrow keys, or swipe. Merge tiles to reach 2048!</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ SNAKE -->
+    <div class="game-card" id="card-snake">
+      <div class="game-header">
+        <span class="game-title-txt">Snake</span>
+        <span class="game-stats">Score&nbsp;<strong id="snake-score">0</strong>&emsp;Best&nbsp;<strong id="snake-best">0</strong></span>
+        <button class="btn btn-outline gm-btn" id="snake-new">New Game</button>
+      </div>
+      <canvas id="snake-canvas" width="280" height="280"></canvas>
+      <p class="game-msg" id="snake-msg"></p>
+      <p class="game-hint">Hover card &rarr; &uarr;&darr;&larr;&rarr; or WASD. Swipe on mobile to steer.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ MINESWEEPER -->
+    <div class="game-card" id="card-ms">
+      <div class="game-header">
+        <span class="game-title-txt">Minesweeper</span>
+        <span class="game-stats">&#128163;&nbsp;<strong id="ms-mines">10</strong>&emsp;&#9201;&nbsp;<strong id="ms-time">&#8212;</strong></span>
+        <button class="btn btn-outline gm-btn" id="ms-flag">&#128681; Flag</button>
+        <button class="btn btn-outline gm-btn" id="ms-new">New</button>
+      </div>
+      <div class="ms-board-wrap"><div id="ms-board" class="ms-board"></div></div>
+      <p class="game-msg" id="ms-msg"></p>
+      <p class="game-hint">Click to reveal &middot; Right-click or &#128681; to flag &middot; Best: <strong id="ms-best">&#8212;</strong></p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ CONWAY -->
+    <div class="game-card" id="card-life">
+      <div class="game-header">
+        <span class="game-title-txt">Game of Life</span>
+        <span class="game-stats">Gen&nbsp;<strong id="life-gen">0</strong>&emsp;Pop&nbsp;<strong id="life-pop">0</strong></span>
+        <div style="display:flex;gap:.35rem;flex-shrink:0;">
+          <button class="btn btn-outline gm-btn" id="life-toggle">&#9654;</button>
+          <button class="btn btn-outline gm-btn" id="life-random">Random</button>
+          <button class="btn btn-outline gm-btn" id="life-clear">Clear</button>
+        </div>
+      </div>
+      <canvas id="life-canvas" width="300" height="300"></canvas>
+      <p class="game-hint">Click or drag to draw &middot; &#9654; to run &middot; A discrete dynamical system with emergent behaviour.</p>
+    </div>
+
+  </div><!-- /.games-grid -->
+
+</div><!-- /.page-content -->
+<footer class="site-footer">
+  <p>&copy; <span id="yr"></span> Luca Pignatelli &mdash; Radboud University Nijmegen</p>
+</footer>
+</main>
+
+<script>
+(function () {
+'use strict';
+
+var focusedGame = null;
+
+/* ═══════════════════════════════════════════════════════════
+   2048
+═══════════════════════════════════════════════════════════ */
+var g2048 = (function () {
+  var S = 4;
+  var grid, score, best, over;
+  best = +localStorage.getItem('lp-hs-2048') || 0;
+
+  var boardEl = document.getElementById('g2048-board');
+  var scoreEl = document.getElementById('g2048-score');
+  var bestEl  = document.getElementById('g2048-best');
+  var msgEl   = document.getElementById('g2048-msg');
+  bestEl.textContent = best;
+
+  function mkGrid() { return Array.from({length:S}, function(){ return new Array(S).fill(0); }); }
+
+  function free(g) {
+    var s = [];
+    for (var r=0;r<S;r++) for (var c=0;c<S;c++) if (!g[r][c]) s.push([r,c]);
+    return s;
+  }
+
+  function spawn(g) {
+    var s = free(g); if (!s.length) return;
+    var p = s[Math.floor(Math.random()*s.length)];
+    g[p[0]][p[1]] = Math.random() < 0.9 ? 2 : 4;
+  }
+
+  function slideRow(row) {
+    var t = row.filter(function(v){ return v; });
+    for (var i = 0; i < t.length-1; i++) {
+      if (t[i] === t[i+1]) { t[i]*=2; score+=t[i]; t.splice(i+1,1); }
+    }
+    while (t.length < S) t.push(0);
+    return t;
+  }
+
+  /* rotate grid 90° clockwise */
+  function rot(g) {
+    return g[0].map(function(_,c){ return g.map(function(r){ return r[c]; }).reverse(); });
+  }
+
+  function doMove(g, dir) {
+    var n = {left:0, up:1, right:2, down:3}[dir];
+    for (var i=0;i<n;i++) g = rot(g);
+    g = g.map(function(r){ return slideRow(r.slice()); });
+    for (var i=0;i<(4-n)%4;i++) g = rot(g);
+    return g;
+  }
+
+  function noMoves(g) {
+    if (free(g).length) return false;
+    for (var r=0;r<S;r++) for (var c=0;c<S;c++) {
+      if (r<S-1 && g[r][c]===g[r+1][c]) return false;
+      if (c<S-1 && g[r][c]===g[r][c+1]) return false;
+    }
+    return true;
+  }
+
+  var BG = {
+    0:'#cdc1b4', 2:'#eee4da', 4:'#ede0c8', 8:'#f2b179',
+    16:'#f59563', 32:'#f67c5f', 64:'#f65e3b', 128:'#edcf72',
+    256:'#edcc61', 512:'#edc850', 1024:'#edc53f', 2048:'#edc22e'
+  };
+
+  function render() {
+    boardEl.innerHTML = '';
+    for (var r=0;r<S;r++) for (var c=0;c<S;c++) {
+      var v = grid[r][c], el = document.createElement('div');
+      el.className = 'g2048-cell';
+      el.style.background = BG[v] || '#3c3a32';
+      el.style.color = v <= 4 ? '#776e65' : '#f9f6f2';
+      el.style.fontSize = v>=1024 ? '.82rem' : v>=100 ? '1.08rem' : '1.45rem';
+      if (v) el.textContent = v;
+      boardEl.appendChild(el);
+    }
+    scoreEl.textContent = score;
+    bestEl.textContent  = best;
+  }
+
+  function move(dir) {
+    if (over) return;
+    var prev = JSON.stringify(grid);
+    var ng = doMove(grid.map(function(r){ return r.slice(); }), dir);
+    if (JSON.stringify(ng) === prev) return;
+    grid = ng;
+    if (score > best) { best = score; localStorage.setItem('lp-hs-2048', best); }
+    spawn(grid);
+    render();
+    if (grid.some(function(r){ return r.some(function(v){ return v===2048; }); }))
+      msgEl.textContent = '&#127881; You reached 2048!';
+    else if (noMoves(grid)) { over = true; msgEl.textContent = 'No more moves!'; }
+  }
+
+  function newGame() {
+    grid = mkGrid(); score = 0; over = false; msgEl.textContent = '';
+    spawn(grid); spawn(grid); render();
+  }
+
+  var ts2;
+  boardEl.addEventListener('touchstart', function(e){ ts2=e.touches[0]; focusedGame='2048'; }, {passive:true});
+  boardEl.addEventListener('touchend', function(e) {
+    if (!ts2) return;
+    var dx = e.changedTouches[0].clientX - ts2.clientX;
+    var dy = e.changedTouches[0].clientY - ts2.clientY;
+    if (Math.abs(dx) > Math.abs(dy)+15) move(dx>0 ? 'right' : 'left');
+    else if (Math.abs(dy) > Math.abs(dx)+15) move(dy>0 ? 'down' : 'up');
+    ts2 = null;
+  }, {passive:true});
+
+  document.getElementById('g2048-new').addEventListener('click', newGame);
+  document.getElementById('card-2048').addEventListener('mouseenter', function(){ focusedGame='2048'; });
+
+  newGame();
+
+  return {
+    key: function(e) {
+      var m = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
+      if (m[e.key]) move(m[e.key]);
+    }
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   SNAKE
+═══════════════════════════════════════════════════════════ */
+var gSnake = (function () {
+  var CELL=20, COLS=14, ROWS=14;
+  var canvas  = document.getElementById('snake-canvas');
+  var ctx     = canvas.getContext('2d');
+  var scoreEl = document.getElementById('snake-score');
+  var bestEl  = document.getElementById('snake-best');
+  var msgEl   = document.getElementById('snake-msg');
+  var best    = +localStorage.getItem('lp-hs-snake') || 0;
+  bestEl.textContent = best;
+
+  var snake, dir, nextDir, food, score, timerId, alive;
+  var C = { bg:'#1e2836', grid:'#253345', body:'#c49a3c', head:'#e0b84e', food:'#e85d4a' };
+
+  function rnd(n){ return Math.floor(Math.random()*n); }
+
+  function spawnFood() {
+    var occ = new Set(snake.map(function(s){ return s[0]+','+s[1]; }));
+    var x, y;
+    do { x=rnd(COLS); y=rnd(ROWS); } while (occ.has(x+','+y));
+    food = [x,y];
+  }
+
+  function draw() {
+    ctx.fillStyle=C.bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle=C.grid; ctx.lineWidth=.5;
+    for(var i=0;i<=COLS;i++){ ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,ROWS*CELL);ctx.stroke(); }
+    for(var j=0;j<=ROWS;j++){ ctx.beginPath();ctx.moveTo(0,j*CELL);ctx.lineTo(COLS*CELL,j*CELL);ctx.stroke(); }
+    ctx.fillStyle=C.food;
+    ctx.beginPath();ctx.arc(food[0]*CELL+CELL/2,food[1]*CELL+CELL/2,CELL/2-2,0,2*Math.PI);ctx.fill();
+    snake.forEach(function(s,i){
+      ctx.fillStyle = i===0 ? C.head : C.body;
+      ctx.fillRect(s[0]*CELL+1, s[1]*CELL+1, CELL-2, CELL-2);
+    });
+  }
+
+  function step() {
+    dir = nextDir;
+    var hx=snake[0][0]+dir[0], hy=snake[0][1]+dir[1];
+    if (hx<0||hx>=COLS||hy<0||hy>=ROWS) { endGame(); return; }
+    if (snake.some(function(s){ return s[0]===hx&&s[1]===hy; })) { endGame(); return; }
+    snake.unshift([hx,hy]);
+    if (hx===food[0]&&hy===food[1]) {
+      score++; scoreEl.textContent=score;
+      if (score>best){ best=score; bestEl.textContent=best; localStorage.setItem('lp-hs-snake',best); }
+      spawnFood();
+      clearInterval(timerId);
+      timerId = setInterval(step, Math.max(65, 150-score*6));
+    } else { snake.pop(); }
+    draw();
+  }
+
+  function endGame() {
+    alive=false; clearInterval(timerId);
+    ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.font='bold 18px "DM Sans",sans-serif';
+    ctx.fillText('Game Over', canvas.width/2, canvas.height/2-8);
+    ctx.font='13px "DM Sans",sans-serif';
+    ctx.fillText('Score: '+score, canvas.width/2, canvas.height/2+14);
+    msgEl.textContent = 'Press New Game to restart.';
+  }
+
+  function setDir(d) {
+    if (d[0]+dir[0]===0 && d[1]+dir[1]===0) return;
+    nextDir = d;
+  }
+
+  function newGame() {
+    var cx=Math.floor(COLS/2), cy=Math.floor(ROWS/2);
+    snake=[[cx,cy],[cx-1,cy],[cx-2,cy]];
+    dir=[1,0]; nextDir=[1,0]; score=0; alive=true;
+    scoreEl.textContent=0; msgEl.textContent='';
+    spawnFood(); clearInterval(timerId);
+    timerId = setInterval(step, 150);
+    draw();
+  }
+
+  var tsS;
+  canvas.addEventListener('touchstart', function(e){ tsS=e.touches[0]; focusedGame='snake'; }, {passive:true});
+  canvas.addEventListener('touchend', function(e) {
+    if (!tsS) return;
+    var dx=e.changedTouches[0].clientX-tsS.clientX, dy=e.changedTouches[0].clientY-tsS.clientY;
+    if (Math.abs(dx)>Math.abs(dy)+10) setDir(dx>0?[1,0]:[-1,0]);
+    else setDir(dy>0?[0,1]:[0,-1]);
+    tsS=null;
+  }, {passive:true});
+
+  document.getElementById('snake-new').addEventListener('click', newGame);
+  document.getElementById('card-snake').addEventListener('mouseenter', function(){ focusedGame='snake'; });
+
+  newGame();
+
+  return {
+    key: function(e) {
+      var m = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1],
+               w:[0,-1],a:[-1,0],s:[0,1],d:[1,0]};
+      var k = m[e.key] || m[(e.key||'').toLowerCase()];
+      if (k) setDir(k);
+    }
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   MINESWEEPER
+═══════════════════════════════════════════════════════════ */
+(function () {
+  var R=9, C=9, M=10;
+  var board, revealed, flagged, started, won, lost, lostR, lostC, flagMode;
+  var timerId, startTime, flagCount;
+  var best = +localStorage.getItem('lp-hs-ms') || 0;
+
+  var boardEl = document.getElementById('ms-board');
+  var minesEl = document.getElementById('ms-mines');
+  var timeEl  = document.getElementById('ms-time');
+  var msgEl   = document.getElementById('ms-msg');
+  var bestEl  = document.getElementById('ms-best');
+  var flagBtn = document.getElementById('ms-flag');
+  bestEl.textContent = best ? best+'s' : '\u2014';
+
+  function newGame() {
+    board    = Array.from({length:R}, function(){ return new Array(C).fill(0); });
+    revealed = Array.from({length:R}, function(){ return new Array(C).fill(false); });
+    flagged  = Array.from({length:R}, function(){ return new Array(C).fill(false); });
+    started=won=lost=false; lostR=lostC=-1; flagCount=0; flagMode=false;
+    clearInterval(timerId);
+    timeEl.textContent='\u2014'; minesEl.textContent=M; msgEl.textContent='';
+    flagBtn.textContent='\uD83D\uDEA9 Flag'; flagBtn.style.borderColor='';
+    boardEl.style.gridTemplateColumns = 'repeat('+C+', 26px)';
+    render();
+  }
+
+  function placeMines(sr, sc) {
+    var placed=0;
+    while (placed<M) {
+      var r=Math.floor(Math.random()*R), c=Math.floor(Math.random()*C);
+      if (Math.abs(r-sr)<=1 && Math.abs(c-sc)<=1) continue;
+      if (board[r][c]===-1) continue;
+      board[r][c]=-1; placed++;
+    }
+    for (var r=0;r<R;r++) for (var c=0;c<C;c++) {
+      if (board[r][c]===-1) continue;
+      var n=0;
+      for (var dr=-1;dr<=1;dr++) for (var dc=-1;dc<=1;dc++) {
+        var nr=r+dr, nc=c+dc;
+        if (nr>=0&&nr<R&&nc>=0&&nc<C&&board[nr][nc]===-1) n++;
+      }
+      board[r][c]=n;
+    }
+  }
+
+  function flood(r, c) {
+    if (r<0||r>=R||c<0||c>=C||revealed[r][c]||flagged[r][c]) return;
+    revealed[r][c]=true;
+    if (board[r][c]===0) for (var dr=-1;dr<=1;dr++) for (var dc=-1;dc<=1;dc++) flood(r+dr,c+dc);
+  }
+
+  function checkWin() {
+    var u=0;
+    for (var r=0;r<R;r++) for (var c=0;c<C;c++) if (!revealed[r][c]) u++;
+    if (u===M) {
+      won=true; clearInterval(timerId);
+      var t=Math.round((Date.now()-startTime)/1000);
+      timeEl.textContent=t+'s';
+      if (!best||t<best){ best=t; localStorage.setItem('lp-hs-ms',best); bestEl.textContent=best+'s'; }
+      msgEl.textContent='\uD83C\uDF89 Cleared in '+t+' seconds!';
+      render();
+    }
+  }
+
+  var NC = ['','#3b82f6','#22c55e','#ef4444','#6366f1','#f97316','#06b6d4','#a1a1aa','#71717a'];
+
+  function render() {
+    boardEl.innerHTML='';
+    for (var r=0;r<R;r++) for (var c=0;c<C;c++) {
+      (function(r,c){
+        var cell=document.createElement('div');
+        cell.className='ms-cell';
+        if (lost && board[r][c]===-1 && !flagged[r][c]) {
+          cell.className='ms-cell revealed'; cell.textContent='\uD83D\uDCA3';
+          if (r===lostR&&c===lostC) cell.classList.add('mine-hit');
+        } else if (flagged[r][c]) {
+          cell.textContent='\uD83D\uDEA9'; cell.style.fontSize='.7rem';
+        } else if (revealed[r][c]) {
+          cell.classList.add('revealed');
+          if (board[r][c]>0){ cell.textContent=board[r][c]; cell.style.color=NC[board[r][c]]||'#999'; }
+        }
+        cell.addEventListener('click', function(){
+          if (won||lost) return;
+          if (flagMode||false){ toggleFlag(r,c); return; }
+          if (flagged[r][c]) return;
+          if (flagMode){ toggleFlag(r,c); return; }
+          if (!started){
+            started=true; placeMines(r,c); startTime=Date.now();
+            timerId=setInterval(function(){
+              if (!won&&!lost) timeEl.textContent=Math.round((Date.now()-startTime)/1000)+'s';
+            },500);
+          }
+          if (board[r][c]===-1){
+            revealed[r][c]=true; lost=true; lostR=r; lostC=c;
+            clearInterval(timerId); msgEl.textContent='\uD83D\uDCA5 Boom! Try again.';
+            render(); return;
+          }
+          flood(r,c); render(); checkWin();
+        });
+        cell.addEventListener('contextmenu', function(e){ e.preventDefault(); toggleFlag(r,c); });
+        boardEl.appendChild(cell);
+      })(r,c);
+    }
+  }
+
+  function toggleFlag(r,c){
+    if (won||lost||revealed[r][c]) return;
+    flagged[r][c]=!flagged[r][c];
+    flagCount=0;
+    for (var i=0;i<R;i++) for (var j=0;j<C;j++) if (flagged[i][j]) flagCount++;
+    minesEl.textContent=M-flagCount;
+    render();
+  }
+
+  flagBtn.addEventListener('click', function(){
+    flagMode=!flagMode;
+    flagBtn.textContent=flagMode?'\uD83D\uDD0D Reveal':'\uD83D\uDEA9 Flag';
+    flagBtn.style.borderColor=flagMode?'var(--gold)':'';
+  });
+  document.getElementById('ms-new').addEventListener('click', newGame);
+
+  newGame();
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   CONWAY'S GAME OF LIFE
+═══════════════════════════════════════════════════════════ */
+(function () {
+  var COLS=60, ROWS=60, CELL=5;
+  var canvas    = document.getElementById('life-canvas');
+  var ctx       = canvas.getContext('2d');
+  var genEl     = document.getElementById('life-gen');
+  var popEl     = document.getElementById('life-pop');
+  var toggleBtn = document.getElementById('life-toggle');
+
+  var grid, gen, running, timerId, painting, paintVal;
+  var C = { bg:'#1e2836', alive:'#c49a3c', dead:'#253345' };
+
+  function mk(){ return Array.from({length:ROWS}, function(){ return new Array(COLS).fill(0); }); }
+
+  function draw() {
+    ctx.fillStyle=C.bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+    var pop=0;
+    for (var r=0;r<ROWS;r++) for (var c=0;c<COLS;c++) {
+      ctx.fillStyle = grid[r][c] ? C.alive : C.dead;
+      ctx.fillRect(c*CELL+.5, r*CELL+.5, CELL-1, CELL-1);
+      if (grid[r][c]) pop++;
+    }
+    genEl.textContent=gen; popEl.textContent=pop;
+  }
+
+  function step() {
+    var next=mk();
+    for (var r=0;r<ROWS;r++) for (var c=0;c<COLS;c++) {
+      var n=0;
+      for (var dr=-1;dr<=1;dr++) for (var dc=-1;dc<=1;dc++) {
+        if (!dr&&!dc) continue;
+        n += grid[(r+dr+ROWS)%ROWS][(c+dc+COLS)%COLS];
+      }
+      next[r][c] = grid[r][c] ? (n===2||n===3?1:0) : (n===3?1:0);
+    }
+    grid=next; gen++; draw();
+  }
+
+  function cellAt(e) {
+    var rect=canvas.getBoundingClientRect();
+    var sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+    var src=e.touches?e.touches[0]:e;
+    return [Math.floor((src.clientY-rect.top)*sy/CELL), Math.floor((src.clientX-rect.left)*sx/CELL)];
+  }
+
+  function paint(e, init) {
+    var rc=cellAt(e), r=rc[0], c=rc[1];
+    if (r<0||r>=ROWS||c<0||c>=COLS) return;
+    if (init) paintVal=1-grid[r][c];
+    grid[r][c]=paintVal; draw();
+  }
+
+  canvas.addEventListener('mousedown',  function(e){ painting=true; paint(e,true); });
+  canvas.addEventListener('mousemove',  function(e){ if(painting) paint(e,false); });
+  canvas.addEventListener('mouseup',    function(){ painting=false; });
+  canvas.addEventListener('mouseleave', function(){ painting=false; });
+  canvas.addEventListener('touchstart', function(e){ e.preventDefault(); painting=true; paint(e,true); }, {passive:false});
+  canvas.addEventListener('touchmove',  function(e){ e.preventDefault(); if(painting) paint(e,false); }, {passive:false});
+  canvas.addEventListener('touchend',   function(){ painting=false; }, {passive:true});
+
+  toggleBtn.addEventListener('click', function(){
+    running=!running;
+    toggleBtn.textContent=running?'\u23F8':'\u25B6';
+    if (running) timerId=setInterval(step,100);
+    else clearInterval(timerId);
+  });
+
+  document.getElementById('life-random').addEventListener('click', function(){
+    if (running){ clearInterval(timerId); running=false; toggleBtn.textContent='\u25B6'; }
+    gen=0; grid=mk();
+    for (var r=0;r<ROWS;r++) for (var c=0;c<COLS;c++) grid[r][c]=Math.random()<.28?1:0;
+    draw();
+  });
+
+  document.getElementById('life-clear').addEventListener('click', function(){
+    running=false; clearInterval(timerId); toggleBtn.textContent='\u25B6';
+    gen=0; grid=mk(); draw();
+  });
+
+  /* Start with a glider */
+  gen=0; running=false; painting=false; grid=mk();
+  var cx=Math.floor(COLS/2), cy=Math.floor(ROWS/2);
+  [[0,1],[1,2],[2,0],[2,1],[2,2]].forEach(function(p){ grid[cy+p[0]][cx+p[1]]=1; });
+  draw();
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   Global keyboard routing
+═══════════════════════════════════════════════════════════ */
+var ARROWS = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
+document.addEventListener('keydown', function(e){
+  if (focusedGame && ARROWS.indexOf(e.key) !== -1) e.preventDefault();
+  if (focusedGame === '2048')  g2048.key(e);
+  if (focusedGame === 'snake') gSnake.key(e);
+});
+
+})(); // end IIFE
+</script>
+
+<script src="nav.js"></script>
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>
