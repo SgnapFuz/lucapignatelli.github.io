@@ -75,7 +75,18 @@
     return overlay;
   }
 
+  function isMobile() {
+    return window.matchMedia('(max-width: 768px)').matches ||
+           /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
   function openPdfPreview(url, title) {
+    /* On mobile, iframes can't embed PDFs — open directly in a new tab instead */
+    if (isMobile()) {
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
+
     var overlay  = document.getElementById('pdfOverlay') || buildModal();
     var frame    = document.getElementById('pdfModalFrame');
     var titleEl  = document.getElementById('pdfModalTitle');
