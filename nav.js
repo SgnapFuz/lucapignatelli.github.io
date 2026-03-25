@@ -1,20 +1,155 @@
 /*!
- * nav.js — Shared navigation, sidebar & theming
+ * nav.js — Shared navigation, sidebar, theming & Allen-Cahn phase field
  * Luca Pignatelli Academic Portfolio
- * ─────────────────────────────────────────────
- * • Injects sidebar & mobile header into every sub-page
- * • Handles dark / light mode (defaults to system preference)
- * • Handles mobile hamburger & click-outside
- *
- * PHOTO: Put your photo at  assets/photo.jpg
- * FILES: Put downloadable files in  files/
  */
 
 (function () {
   'use strict';
 
   /* ────────────────────────────────────────────────────────────
-     PDF PREVIEW — open in new tab (works on all devices)
+     ALLEN-CAHN PHASE FIELD SIMULATION
+     100×100 grid, eps²=0.028, dt=0.38
+     Convergence detection → automatic time-reversal (no jumps)
+     Theme toggle inverts u → -u (interfaces stable, colours flip)
+  ──────────────────────────────────────────────────────────── */
+  var AC = (function () {
+    var N = 100, eps2 = 0.028, dt = 0.38;
+    var grid = new Float32Array(N * N);
+    var next = new Float32Array(N * N);
+    var direction = 1;
+    var stepsSinceFlip = 0;
+    var changeLog = [];
+    var LOG = 30;
+    var canvas, ctx, imgData;
+    var animHandle;
+
+    function init() {
+      for (var i = 0; i < N * N; i++) grid[i] = (Math.random() - 0.5) * 2.0;
+      for (var k = 0; k < 12; k++) doStep(1); /* smooth initial state */
+    }
+
+    function doStep(dir) {
+      var totalChange = 0;
+      for (var r = 0; r < N; r++) {
+        for (var c = 0; c < N; c++) {
+          var i = r * N + c;
+          var u = grid[i];
+          var up = grid[((r - 1 + N) % N) * N + c];
+          var dn = grid[((r + 1) % N) * N + c];
+          var lt = grid[r * N + ((c - 1 + N) % N)];
+          var rt = grid[r * N + ((c + 1) % N)];
+          var lap = up + dn + lt + rt - 4 * u;
+          var dW  = u * u * u - u;            /* W'(u) for W=(u²-1)²/4 */
+          var nv  = u + dir * dt * (eps2 * lap - dW);
+          if (nv < -1.1) nv = -1.1;
+          if (nv >  1.1) nv =  1.1;
+          next[i] = nv;
+          totalChange += nv > u ? nv - u : u - nv;
+        }
+      }
+      var tmp = grid; grid = next; next = tmp;
+      return totalChange / (N * N);
+    }
+
+    function step() {
+      var change = doStep(direction);
+      changeLog.push(change);
+      if (changeLog.length > LOG) changeLog.shift();
+      stepsSinceFlip++;
+
+      if (changeLog.length >= LOG && stepsSinceFlip > 80) {
+        var avg = 0;
+        for (var k = 0; k < changeLog.length; k++) avg += changeLog[k];
+        avg /= changeLog.length;
+
+        if (direction === 1 && avg < 0.00022) {
+          /* Converging forward: flip to backward */
+          direction = -1; stepsSinceFlip = 0; changeLog = [];
+        } else if (direction === -1 && avg > 0.005 && stepsSinceFlip > 60) {
+          /* Diverging backward enough: flip forward again */
+          direction = 1; stepsSinceFlip = 0; changeLog = [];
+        }
+      }
+    }
+
+    function getColors() {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (dark) {
+        /* Dark: +1 = deep blue-navy, -1 = near-black */
+        return { hiR:18, hiG:26, hiB:42,  loR:4,  loG:4,  loB:8  };
+      } else {
+        /* Light: +1 = warm cream, -1 = cool blue-white */
+        return { hiR:245, hiG:240, hiB:230, loR:232, loG:238, loB:248 };
+      }
+    }
+
+    function draw() {
+      if (!canvas || !ctx || !imgData) return;
+      var w = canvas.width, h = canvas.height;
+      var data = imgData.data;
+      var C = getColors();
+      var cw = w / N, ch = h / N;
+      for (var r = 0; r < N; r++) {
+        for (var c = 0; c < N; c++) {
+          var u = grid[r * N + c];
+          if (u < -1) u = -1; if (u > 1) u = 1;
+          var t = (u + 1) * 0.5;
+          var R = (C.loR + t * (C.hiR - C.loR)) | 0;
+          var G = (C.loG + t * (C.hiG - C.loG)) | 0;
+          var B = (C.loB + t * (C.hiB - C.loB)) | 0;
+          var px = (c * cw) | 0, py = (r * ch) | 0;
+          var pw = (((c + 1) * cw) | 0) - px + 1;
+          var ph = (((r + 1) * ch) | 0) - py + 1;
+          for (var dy = 0; dy < ph && py + dy < h; dy++) {
+            for (var dx = 0; dx < pw && px + dx < w; dx++) {
+              var idx = ((py + dy) * w + (px + dx)) * 4;
+              data[idx]     = R;
+              data[idx + 1] = G;
+              data[idx + 2] = B;
+              data[idx + 3] = 255;
+            }
+          }
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function resize() {
+      if (!canvas) return;
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      imgData = ctx.createImageData(canvas.width, canvas.height);
+    }
+
+    var lastDraw = 0;
+    function loop(t) {
+      step(); step();
+      if (t - lastDraw > 90) { draw(); lastDraw = t; }
+      animHandle = setTimeout(function () { requestAnimationFrame(loop); }, 30);
+    }
+
+    function invert() {
+      /* u → -u: interfaces stay, phases swap. Used on theme toggle. */
+      for (var i = 0; i < N * N; i++) grid[i] = -grid[i];
+      draw();
+    }
+
+    function start() {
+      canvas = document.createElement('canvas');
+      canvas.id = 'phase-canvas';
+      document.body.insertBefore(canvas, document.body.firstChild);
+      ctx = canvas.getContext('2d');
+      resize();
+      init();
+      requestAnimationFrame(loop);
+      window.addEventListener('resize', resize);
+    }
+
+    return { start: start, invert: invert };
+  })();
+
+  /* ────────────────────────────────────────────────────────────
+     PDF PREVIEW — open in new tab (all devices)
   ──────────────────────────────────────────────────────────── */
   function initPdfPreview() {
     document.addEventListener('click', function (e) {
@@ -27,139 +162,6 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     PDF PREVIEW MODAL (removed — kept as tombstone, delete safely)
-  ──────────────────────────────────────────────────────────── */
-  function buildModal() {
-    var overlay = document.createElement('div');
-    overlay.className = 'pdf-overlay';
-    overlay.id = 'pdfOverlay';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'PDF preview');
-    overlay.innerHTML =
-      '<div class="pdf-modal" id="pdfModal">' +
-        '<div class="pdf-modal-bar">' +
-          '<span class="pdf-modal-title" id="pdfModalTitle"></span>' +
-          '<a class="pdf-modal-download" id="pdfModalDownload" download>' +
-            '<svg viewBox="0 0 24 24"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>' +
-            'Download' +
-          '</a>' +
-          '<button class="pdf-modal-close" id="pdfModalClose" aria-label="Close preview">✕</button>' +
-        '</div>' +
-        '<div class="pdf-modal-body" id="pdfModalBody">' +
-          '<iframe id="pdfModalFrame" title="PDF preview"></iframe>' +
-          '<div class="pdf-modal-fallback">' +
-            '<p>This file cannot be previewed directly in the browser<br>(the server may not allow embedding).</p>' +
-            '<a class="pdf-modal-download" id="pdfFallbackDownload" download>' +
-              '<svg viewBox="0 0 24 24"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 2h14v2H5v-2z"/></svg>' +
-              'Download PDF' +
-            '</a>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(overlay);
-
-    var frame    = document.getElementById('pdfModalFrame');
-    var body     = document.getElementById('pdfModalBody');
-    var download = document.getElementById('pdfModalDownload');
-    var fallback = document.getElementById('pdfFallbackDownload');
-
-    /* Detect when iframe fails to load (CORS / X-Frame-Options block) */
-    frame.addEventListener('load', function () {
-      try {
-        /* If the frame loaded a cross-origin error page the contentDocument
-           will either throw or have no meaningful content */
-        var doc = frame.contentDocument || frame.contentWindow.document;
-        if (!doc || doc.title === '' && doc.body && doc.body.innerHTML === '') {
-          body.classList.add('blocked');
-        } else {
-          body.classList.remove('blocked');
-        }
-      } catch (e) {
-        /* Cross-origin → can't inspect → assume blocked */
-        body.classList.add('blocked');
-      }
-    });
-
-    frame.addEventListener('error', function () {
-      body.classList.add('blocked');
-    });
-
-    return overlay;
-  }
-
-  function isMobile() {
-    return window.matchMedia('(max-width: 768px)').matches ||
-           /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }
-
-  function openPdfPreview(url, title) {
-    /* On mobile, iframes can't embed PDFs — open directly in a new tab instead */
-    if (isMobile()) {
-      window.open(url, '_blank', 'noopener');
-      return;
-    }
-
-    var overlay  = document.getElementById('pdfOverlay') || buildModal();
-    var frame    = document.getElementById('pdfModalFrame');
-    var titleEl  = document.getElementById('pdfModalTitle');
-    var dl       = document.getElementById('pdfModalDownload');
-    var dlFb     = document.getElementById('pdfFallbackDownload');
-    var body     = document.getElementById('pdfModalBody');
-
-    titleEl.textContent = title || 'Document preview';
-    dl.href    = url;
-    dlFb.href  = url;
-    body.classList.remove('blocked');
-    frame.src  = url;
-
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-
-    /* Focus trap */
-    var closeBtn = document.getElementById('pdfModalClose');
-    if (closeBtn) closeBtn.focus();
-  }
-
-  function closePdfPreview() {
-    var overlay = document.getElementById('pdfOverlay');
-    var frame   = document.getElementById('pdfModalFrame');
-    if (overlay) overlay.classList.remove('open');
-    if (frame)   frame.src = '';            /* stop loading / free memory */
-    document.body.style.overflow = '';
-  }
-
-  function initPdfModal() {
-    /* Build modal DOM once */
-    if (!document.getElementById('pdfOverlay')) buildModal();
-
-    document.addEventListener('click', function (e) {
-      /* Close button */
-      if (e.target.closest('#pdfModalClose')) { closePdfPreview(); return; }
-
-      /* Click on overlay backdrop (outside modal box) */
-      var overlay = document.getElementById('pdfOverlay');
-      if (overlay && overlay.classList.contains('open') &&
-          e.target === overlay) { closePdfPreview(); return; }
-
-      /* Preview trigger — any element with data-pdf-preview */
-      var trigger = e.target.closest('[data-pdf-preview]');
-      if (trigger) {
-        e.preventDefault();
-        openPdfPreview(
-          trigger.getAttribute('data-pdf-preview'),
-          trigger.getAttribute('data-pdf-title') || ''
-        );
-      }
-    });
-
-    /* ESC key */
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closePdfPreview();
-    });
-  }
-
-  /* ────────────────────────────────────────────────────────────
      THEME
   ──────────────────────────────────────────────────────────── */
   function resolveTheme() {
@@ -168,15 +170,16 @@
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
-  function applyTheme(theme) {
+  function applyTheme(theme, invertCanvas) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('lp-theme', theme);
     updateThemeIcons(theme === 'dark');
+    if (invertCanvas) AC.invert();
   }
 
   function toggleTheme() {
     var cur = document.documentElement.getAttribute('data-theme') || 'light';
-    applyTheme(cur === 'dark' ? 'light' : 'dark');
+    applyTheme(cur === 'dark' ? 'light' : 'dark', true);
   }
 
   var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
@@ -187,6 +190,26 @@
       btn.innerHTML = isDark ? SUN : MOON;
       btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
     });
+  }
+
+  /* ────────────────────────────────────────────────────────────
+     DIRECTIONAL HOVER (bento cards + any .home-card)
+  ──────────────────────────────────────────────────────────── */
+  function initDirectionalHover() {
+    document.addEventListener('mousemove', function (e) {
+      var card = e.target.closest('.home-card');
+      if (!card) return;
+      var r = card.getBoundingClientRect();
+      card.style.setProperty('--card-mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      card.style.setProperty('--card-my', ((e.clientY - r.top)  / r.height * 100) + '%');
+    });
+    document.addEventListener('mouseleave', function (e) {
+      var card = e.target.closest ? e.target.closest('.home-card') : null;
+      if (card) {
+        card.style.setProperty('--card-mx', '50%');
+        card.style.setProperty('--card-my', '50%');
+      }
+    }, true);
   }
 
   /* ────────────────────────────────────────────────────────────
@@ -211,7 +234,7 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     BUILD SIDEBAR HTML
+     BUILD SIDEBAR
   ──────────────────────────────────────────────────────────── */
   function buildSidebar(active) {
     var navHTML = NAV.map(function (item) {
@@ -220,30 +243,26 @@
     }).join('');
 
     return (
-      /* Controls row */
       '<div class="sidebar-controls">' +
         '<button class="theme-btn" aria-label="Toggle theme"></button>' +
       '</div>' +
 
-      /* Identity */
       '<div class="sidebar-identity">' +
         '<a href="index.html" class="headshot-link">' +
           '<div class="headshot-wrap">' +
             '<img src="assets/photo.png" alt="Luca Pignatelli" class="headshot"' +
-            ' onerror="this.src=\'https://placehold.co/160x160/e8e2d9/0d1b2a?text=LP\'" />' +
+            ' onerror="this.src=\'https://placehold.co/300x300/e8e2d9/0d1b2a?text=LP\'" />' +
           '</div>' +
         '</a>' +
         '<h1 class="sidebar-name"><a href="index.html">Luca Pignatelli</a></h1>' +
-        '<p class="sidebar-title">PhD Candidate<br>Calculus of Variations</p>' +
+        '<p class="sidebar-title">PhD Candidate · Calculus of Variations</p>' +
         '<p class="sidebar-affiliation">Radboud University · Nijmegen, NL</p>' +
       '</div>' +
 
-      /* Nav */
       '<nav class="sidebar-nav" aria-label="Main navigation">' +
         '<ul>' + navHTML + '</ul>' +
       '</nav>' +
 
-      /* Contact */
       '<div class="sidebar-contact">' +
         '<a href="mailto:luca.pignatelli@ru.nl" class="contact-link">luca.pignatelli@ru.nl</a>' +
         '<div class="social-links">' +
@@ -256,7 +275,6 @@
         '</div>' +
       '</div>' +
 
-      /* LaTeX watermark */
       '<div class="sidebar-watermark" aria-hidden="true">' +
       '\\(\\Gamma\\text{-}\\lim_{\\varepsilon\\to 0}\\mathcal{F}_\\varepsilon\\)' +
       '</div>'
@@ -264,7 +282,7 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     BUILD MOBILE HEADER HTML
+     BUILD MOBILE HEADER
   ──────────────────────────────────────────────────────────── */
   function buildMobileHeader() {
     return (
@@ -284,45 +302,41 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     INIT (runs after DOM ready)
+     INIT
   ──────────────────────────────────────────────────────────── */
   function init() {
-    var active     = getActivePage();
-    var sidebarEl  = document.getElementById('sidebar');
-    var headerEl   = document.getElementById('mobile-header');
+    /* 1. Phase field canvas (all pages) */
+    AC.start();
 
-    if (sidebarEl) sidebarEl.innerHTML  = buildSidebar(active);
-    if (headerEl)  headerEl.innerHTML   = buildMobileHeader();
+    var active    = getActivePage();
+    var sidebarEl = document.getElementById('sidebar');
+    var headerEl  = document.getElementById('mobile-header');
 
-    /* Sync theme icons */
+    if (sidebarEl) sidebarEl.innerHTML = buildSidebar(active);
+    if (headerEl)  headerEl.innerHTML  = buildMobileHeader();
+
+    /* 2. Sync theme icons */
     updateThemeIcons(resolveTheme() === 'dark');
 
-    /* Unified click handler */
+    /* 3. Unified click handler */
     document.addEventListener('click', function (e) {
       var sidebar = document.getElementById('sidebar');
       var toggle  = document.getElementById('navToggle');
 
-      /* Theme toggle */
       if (e.target.closest('.theme-btn')) {
         toggleTheme();
         return;
       }
-
-      /* Hamburger open/close */
       if (e.target.closest('#navToggle')) {
         if (sidebar) sidebar.classList.toggle('open');
         if (toggle)  toggle.classList.toggle('open');
         return;
       }
-
-      /* Nav link — close sidebar on mobile */
       if (e.target.closest('.nav-link')) {
         if (sidebar) sidebar.classList.remove('open');
         if (toggle)  toggle.classList.remove('open');
         return;
       }
-
-      /* Click outside sidebar — close */
       if (sidebar && sidebar.classList.contains('open')) {
         if (!e.target.closest('#sidebar')) {
           sidebar.classList.remove('open');
@@ -331,16 +345,18 @@
       }
     });
 
-    /* PDF preview — open in new tab */
+    /* 4. PDF preview (new tab) */
     initPdfPreview();
 
-    /* Re-typeset MathJax for sidebar watermark */
+    /* 5. Directional hover */
+    initDirectionalHover();
+
+    /* 6. MathJax retypeset for sidebar watermark */
     if (window.MathJax && window.MathJax.typesetPromise && sidebarEl) {
       MathJax.typesetPromise([sidebarEl]).catch(function () {});
     }
   }
 
-  /* Run once DOM is ready */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

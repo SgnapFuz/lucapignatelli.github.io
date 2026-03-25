@@ -6,49 +6,17 @@
   <script>(function(){ var t=localStorage.getItem('lp-theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); document.documentElement.setAttribute('data-theme',t); })();</script>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* ── Layout ─────────────────────────────────────────────── */
-    .games-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
-    @media(max-width:768px){ .games-grid{ grid-template-columns:1fr; } }
-
-    .game-card {
-      background:var(--bg-card); border:1px solid var(--rule); border-radius:10px;
-      padding:1.1rem; display:flex; flex-direction:column; gap:.55rem;
-    }
-    .game-title-txt {
-      font-family:'Cormorant Garant',serif; font-size:1.7rem; font-weight:600;
-      color:var(--ink); letter-spacing:-.01em; line-height:1.1; margin:0;
-    }
-    .game-header {
-      display:flex; align-items:center; gap:.45rem; flex-wrap:wrap;
-      padding-top:.2rem; padding-bottom:.5rem; border-bottom:1px solid var(--rule);
-    }
-    .game-stats {
-      font-family:'DM Sans',sans-serif; font-size:.70rem; color:var(--ink-lt);
-      white-space:nowrap; flex:1;
-    }
-    .game-hint {
-      font-family:'DM Sans',sans-serif; font-size:.70rem; color:var(--ink-lt);
-      margin:0; line-height:1.5;
-    }
-    .game-msg {
-      font-family:'DM Sans',sans-serif; font-size:.78rem; font-weight:500;
-      color:var(--gold); min-height:1.1em; margin:0;
-    }
-    .gm-btn { padding:.26rem .62rem !important; font-size:.62rem !important; }
-
-    /* ── 2048 ────────────────────────────────────────────────── */
+    /* Game-specific styles (layout in styles.css) */
     .g2048-board {
       display:grid; grid-template-columns:repeat(4,1fr); gap:7px;
-      background:#bbada0; border-radius:6px; padding:7px;
+      background:#bbada0; border-radius:8px; padding:7px;
       user-select:none; touch-action:none;
     }
     .g2048-cell {
       aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-      border-radius:4px; font-family:'DM Sans',sans-serif; font-weight:700;
+      border-radius:4px; font-family:'Inter',sans-serif; font-weight:700;
       line-height:1; transition:background .08s;
     }
-
-    /* ── Minesweeper ─────────────────────────────────────────── */
     .ms-board-wrap { display:flex; justify-content:center; }
     .ms-board {
       display:grid; gap:2px; background:var(--rule);
@@ -56,17 +24,15 @@
     }
     .ms-cell {
       width:26px; height:26px; display:flex; align-items:center; justify-content:center;
-      font-family:'DM Sans',sans-serif; font-size:.72rem; font-weight:700;
-      cursor:pointer; border-radius:2px; background:var(--bg-card-h);
+      font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600;
+      cursor:pointer; border-radius:3px; background:var(--bg-card-h);
       transition:background .1s;
     }
     .ms-cell:hover:not(.revealed){ background:var(--gold-sub); }
     .ms-cell.revealed { background:var(--bg); cursor:default; }
     .ms-cell.mine-hit { background:#e85d4a !important; }
-
-    /* ── Canvas games ────────────────────────────────────────── */
     #snake-canvas, #life-canvas {
-      display:block; width:100%; border-radius:6px; touch-action:none;
+      display:block; width:100%; border-radius:8px; touch-action:none;
     }
     #life-canvas { cursor:crosshair; }
   </style>
