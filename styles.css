@@ -346,24 +346,24 @@ body.homepage { display:flex; flex-direction:column; align-items:center; }
 
 /* Card internals */
 .card-label {
-  font-family:'Inter',sans-serif; font-size:.5rem; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--gold); font-weight:700; margin-bottom:.28rem;
+  font-family:'Inter',sans-serif; font-size:.6rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gold); font-weight:700; margin-bottom:.32rem;
 }
 .card-icon { width:26px; height:26px; color:var(--gold); margin-bottom:.7rem; opacity:.8; }
 .card-icon svg { width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
-.card-title { font-family:'Cormorant Garant',serif; font-size:.95rem; font-weight:700; line-height:1.25; color:var(--ink); margin-bottom:.22rem; }
-.card-desc { font-family:'Inter',sans-serif; font-size:.64rem; color:var(--ink-lt); line-height:1.55; flex:1; }
-.card-arrow { font-family:'Inter',sans-serif; font-size:.58rem; font-weight:600; color:var(--gold); margin-top:.7rem; opacity:.75; }
+.card-title { font-family:'Cormorant Garant',serif; font-size:1.12rem; font-weight:700; line-height:1.25; color:var(--ink); margin-bottom:.26rem; }
+.card-desc { font-family:'Inter',sans-serif; font-size:.76rem; color:var(--ink-lt); line-height:1.6; flex:1; }
+.card-arrow { font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600; color:var(--gold); margin-top:.7rem; opacity:.8; }
 
 /* Publication featured card internals */
 .card-pub-tag {
   display:inline-block; font-family:'Inter',sans-serif;
-  font-size:.48rem; letter-spacing:.09em; text-transform:uppercase;
+  font-size:.57rem; letter-spacing:.09em; text-transform:uppercase;
   background:var(--gold-sub); color:var(--gold); border-radius:3px;
-  padding:.1rem .38rem; margin-bottom:.38rem; width:fit-content; font-weight:700;
+  padding:.1rem .38rem; margin-bottom:.42rem; width:fit-content; font-weight:700;
 }
-.card-pub-title { font-family:'Cormorant Garant',serif; font-size:.9rem; font-weight:600; line-height:1.35; color:var(--ink); }
-.card-pub-authors { font-family:'Inter',sans-serif; font-size:.6rem; color:var(--ink-lt); margin-top:.18rem; }
+.card-pub-title { font-family:'Cormorant Garant',serif; font-size:1rem; font-weight:600; line-height:1.35; color:var(--ink); }
+.card-pub-authors { font-family:'Inter',sans-serif; font-size:.7rem; color:var(--ink-lt); margin-top:.2rem; }
 
 /* Stat card (2027) */
 .card-stat-num {
@@ -412,7 +412,7 @@ body.homepage { display:flex; flex-direction:column; align-items:center; }
 [data-theme="dark"] .pub-badge.arxiv   { background:#3a2e1a; color:#c8a060; }
 [data-theme="dark"] .pub-badge.ongoing { background:#1a2a3e; color:#7aa8d8; }
 [data-theme="dark"] .pub-badge.review  { background:#1a3020; color:#70b870; }
-.pub-title { font-family:'Cormorant Garant',serif; font-size:1.05rem; font-weight:600; margin-bottom:.22rem; line-height:1.3; }
+.pub-title { font-family:'Inter',sans-serif; font-size:1rem; font-weight:600; margin-bottom:.22rem; line-height:1.35; letter-spacing:-.01em; }
 .pub-authors { font-family:'Inter',sans-serif; font-size:.8rem; color:var(--ink-mid); margin-bottom:.18rem; }
 .pub-venue { font-family:'Inter',sans-serif; font-size:.78rem; color:var(--ink-lt); margin-bottom:.55rem; }
 .pub-abstract { font-size:.84rem; color:var(--ink-mid); line-height:1.65; }
@@ -442,7 +442,7 @@ body.homepage { display:flex; flex-direction:column; align-items:center; }
 .talk-item { display:grid; grid-template-columns:66px 1fr; gap:1.3rem; padding:1.2rem 0; border-bottom:1px solid var(--rule); }
 .talk-item:first-child { border-top:1px solid var(--rule); }
 .talk-date { font-family:'Inter',sans-serif; font-size:.6rem; color:var(--ink-lt); padding-top:.1rem; flex-shrink:0; }
-.talk-title { font-family:'Cormorant Garant',serif; font-size:1rem; font-weight:600; line-height:1.35; margin-bottom:.18rem; }
+.talk-title { font-family:'Inter',sans-serif; font-size:.95rem; font-weight:600; line-height:1.38; margin-bottom:.18rem; letter-spacing:-.01em; }
 .talk-venue { font-family:'Inter',sans-serif; font-size:.78rem; color:var(--ink-lt); margin-bottom:.52rem; }
 .upcoming-wrap { margin-top:2.2rem; }
 .upcoming-item { display:grid; grid-template-columns:66px 1fr; gap:1.3rem; padding:.85rem 1rem; margin-bottom:.42rem; background:var(--up-bg); border-left:2px solid var(--up-col); border-radius:0 8px 8px 0; }

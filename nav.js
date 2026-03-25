@@ -21,7 +21,6 @@
     var changeLog = [];
     var LOG = 30;
     var canvas, ctx, imgData;
-    var animHandle;
 
     function init() {
       for (var i = 0; i < N * N; i++) grid[i] = (Math.random() - 0.5) * 2.0;
@@ -75,11 +74,13 @@
     function getColors() {
       var dark = document.documentElement.getAttribute('data-theme') === 'dark';
       if (dark) {
-        /* Dark: +1 = deep blue-navy, -1 = near-black */
-        return { hiR:18, hiG:26, hiB:42,  loR:4,  loG:4,  loB:8  };
+        /* Dark: +1 = slightly lighter navy, -1 = pure black.
+           Very low contrast — pattern barely visible, never fights text. */
+        return { hiR:16, hiG:20, hiB:32,  loR:0,  loG:0,  loB:0  };
       } else {
-        /* Light: +1 = warm cream, -1 = cool blue-white */
-        return { hiR:245, hiG:240, hiB:230, loR:232, loG:238, loB:248 };
+        /* Light: +1 = warm cream, -1 = cool very-light blue.
+           Soft, not pixelated. */
+        return { hiR:248, hiG:244, hiB:234, loR:236, loG:241, loB:250 };
       }
     }
 
@@ -121,11 +122,13 @@
       imgData = ctx.createImageData(canvas.width, canvas.height);
     }
 
-    var lastDraw = 0;
+    var lastStep = 0, lastDraw = 0;
     function loop(t) {
-      step(); step();
-      if (t - lastDraw > 90) { draw(); lastDraw = t; }
-      animHandle = setTimeout(function () { requestAnimationFrame(loop); }, 30);
+      if (document.visibilityState !== 'hidden') {
+        if (t - lastStep > 35) { step(); step(); lastStep = t; }
+        if (t - lastDraw  > 90) { draw(); lastDraw = t; }
+      }
+      requestAnimationFrame(loop);
     }
 
     function invert() {
