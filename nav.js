@@ -1,159 +1,73 @@
 /*!
- * nav.js — Shared navigation, sidebar, theming & Allen-Cahn phase field
- * Luca Pignatelli Academic Portfolio
+ * nav.js — Navigation, phase background, PDF preview
+ * Apple-inspired redesign. No dark mode. Pure white.
  */
 
 (function () {
   'use strict';
 
-  /* ────────────────────────────────────────────────────────────
-     ALLEN-CAHN PHASE FIELD SIMULATION
-     100×100 grid, eps²=0.028, dt=0.38
-     Convergence detection → automatic time-reversal (no jumps)
-     Theme toggle inverts u → -u (interfaces stable, colours flip)
-  ──────────────────────────────────────────────────────────── */
-  var AC = (function () {
-    var N = 100, eps2 = 0.028, dt = 0.38;
-    var grid = new Float32Array(N * N);
-    var next = new Float32Array(N * N);
-    var direction = 1;
-    var stepsSinceFlip = 0;
-    var changeLog = [];
-    var LOG = 30;
-    var canvas, ctx, imgData;
+  /* ──────────────────────────────────────────────────────────
+     PHASE SEPARATION BACKGROUND
+     Pre-baked Voronoi pattern approximating Allen-Cahn equilibrium.
+     Static; subtle scroll parallax via CSS transform.
+  ────────────────────────────────────────────────────────── */
+  (function initPhaseBg() {
+    var S = 120;
+    var canvas = document.createElement('canvas');
+    canvas.width = canvas.height = S;
+    var ctx = canvas.getContext('2d');
+    var img = ctx.createImageData(S, S);
 
-    function init() {
-      for (var i = 0; i < N * N; i++) grid[i] = (Math.random() - 0.5) * 2.0;
-      for (var k = 0; k < 12; k++) doStep(1); /* smooth initial state */
-    }
+    /* Seeded deterministic RNG (xorshift32) */
+    var st = 0x9E3779B9;
+    function rng() { st ^= st << 13; st ^= st >> 17; st ^= st << 5; return (st >>> 0) / 4294967295; }
 
-    function doStep(dir) {
-      var totalChange = 0;
-      for (var r = 0; r < N; r++) {
-        for (var c = 0; c < N; c++) {
-          var i = r * N + c;
-          var u = grid[i];
-          var up = grid[((r - 1 + N) % N) * N + c];
-          var dn = grid[((r + 1) % N) * N + c];
-          var lt = grid[r * N + ((c - 1 + N) % N)];
-          var rt = grid[r * N + ((c + 1) % N)];
-          var lap = up + dn + lt + rt - 4 * u;
-          var dW  = u * u * u - u;            /* W'(u) for W=(u²-1)²/4 */
-          var nv  = u + dir * dt * (eps2 * lap - dW);
-          if (nv < -1.1) nv = -1.1;
-          if (nv >  1.1) nv =  1.1;
-          next[i] = nv;
-          totalChange += nv > u ? nv - u : u - nv;
+    /* 28 Voronoi seeds */
+    var seeds = [];
+    for (var k = 0; k < 28; k++) seeds.push([rng() * S, rng() * S]);
+
+    /* Render Voronoi cells with two very-close-to-white phases */
+    for (var y = 0; y < S; y++) {
+      for (var x = 0; x < S; x++) {
+        var d1 = 1e9, si = 0;
+        for (var k = 0; k < seeds.length; k++) {
+          var dx = x - seeds[k][0], dy = y - seeds[k][1];
+          var d = dx * dx + dy * dy;
+          if (d < d1) { d1 = d; si = k; }
         }
-      }
-      var tmp = grid; grid = next; next = tmp;
-      return totalChange / (N * N);
-    }
-
-    function step() {
-      var change = doStep(direction);
-      changeLog.push(change);
-      if (changeLog.length > LOG) changeLog.shift();
-      stepsSinceFlip++;
-
-      if (changeLog.length >= LOG && stepsSinceFlip > 80) {
-        var avg = 0;
-        for (var k = 0; k < changeLog.length; k++) avg += changeLog[k];
-        avg /= changeLog.length;
-
-        if (direction === 1 && avg < 0.00022) {
-          /* Converging forward: flip to backward */
-          direction = -1; stepsSinceFlip = 0; changeLog = [];
-        } else if (direction === -1 && avg > 0.005 && stepsSinceFlip > 60) {
-          /* Diverging backward enough: flip forward again */
-          direction = 1; stepsSinceFlip = 0; changeLog = [];
-        }
+        /* Phase +1: warm cream   Phase -1: cool blue-white */
+        var warm = si % 2 === 0;
+        var i = (y * S + x) * 4;
+        img.data[i]     = warm ? 242 : 237;  /* R */
+        img.data[i + 1] = warm ? 239 : 239;  /* G */
+        img.data[i + 2] = warm ? 232 : 246;  /* B */
+        img.data[i + 3] = 255;
       }
     }
+    ctx.putImageData(img, 0, 0);
 
-    function getColors() {
-      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-      if (dark) {
-        /* Dark: +1 = slightly lighter navy, -1 = pure black.
-           Very low contrast — pattern barely visible, never fights text. */
-        return { hiR:16, hiG:20, hiB:32,  loR:0,  loG:0,  loB:0  };
-      } else {
-        /* Light: +1 = warm cream, -1 = cool very-light blue.
-           Soft, not pixelated. */
-        return { hiR:248, hiG:244, hiB:234, loR:236, loG:241, loB:250 };
+    /* Background div with CSS blur to smooth Voronoi edges */
+    var bg = document.createElement('div');
+    bg.id = 'phase-bg';
+    bg.style.backgroundImage = 'url(' + canvas.toDataURL() + ')';
+    document.body.insertBefore(bg, document.body.firstChild);
+
+    /* Scroll parallax — RAF-throttled */
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        requestAnimationFrame(function () {
+          bg.style.transform = 'translateY(' + window.scrollY * 0.04 + 'px)';
+          ticking = false;
+        });
+        ticking = true;
       }
-    }
-
-    function draw() {
-      if (!canvas || !ctx || !imgData) return;
-      var w = canvas.width, h = canvas.height;
-      var data = imgData.data;
-      var C = getColors();
-      var cw = w / N, ch = h / N;
-      for (var r = 0; r < N; r++) {
-        for (var c = 0; c < N; c++) {
-          var u = grid[r * N + c];
-          if (u < -1) u = -1; if (u > 1) u = 1;
-          var t = (u + 1) * 0.5;
-          var R = (C.loR + t * (C.hiR - C.loR)) | 0;
-          var G = (C.loG + t * (C.hiG - C.loG)) | 0;
-          var B = (C.loB + t * (C.hiB - C.loB)) | 0;
-          var px = (c * cw) | 0, py = (r * ch) | 0;
-          var pw = (((c + 1) * cw) | 0) - px + 1;
-          var ph = (((r + 1) * ch) | 0) - py + 1;
-          for (var dy = 0; dy < ph && py + dy < h; dy++) {
-            for (var dx = 0; dx < pw && px + dx < w; dx++) {
-              var idx = ((py + dy) * w + (px + dx)) * 4;
-              data[idx]     = R;
-              data[idx + 1] = G;
-              data[idx + 2] = B;
-              data[idx + 3] = 255;
-            }
-          }
-        }
-      }
-      ctx.putImageData(imgData, 0, 0);
-    }
-
-    function resize() {
-      if (!canvas) return;
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-      imgData = ctx.createImageData(canvas.width, canvas.height);
-    }
-
-    var lastStep = 0, lastDraw = 0;
-    function loop(t) {
-      if (document.visibilityState !== 'hidden') {
-        if (t - lastStep > 35) { step(); step(); lastStep = t; }
-        if (t - lastDraw  > 90) { draw(); lastDraw = t; }
-      }
-      requestAnimationFrame(loop);
-    }
-
-    function invert() {
-      /* u → -u: interfaces stay, phases swap. Used on theme toggle. */
-      for (var i = 0; i < N * N; i++) grid[i] = -grid[i];
-      draw();
-    }
-
-    function start() {
-      canvas = document.createElement('canvas');
-      canvas.id = 'phase-canvas';
-      document.body.insertBefore(canvas, document.body.firstChild);
-      ctx = canvas.getContext('2d');
-      resize();
-      init();
-      requestAnimationFrame(loop);
-      window.addEventListener('resize', resize);
-    }
-
-    return { start: start, invert: invert };
+    }, { passive: true });
   })();
 
-  /* ────────────────────────────────────────────────────────────
-     PDF PREVIEW — open in new tab (all devices)
-  ──────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────
+     PDF PREVIEW — new tab (all devices)
+  ────────────────────────────────────────────────────────── */
   function initPdfPreview() {
     document.addEventListener('click', function (e) {
       var trigger = e.target.closest('[data-pdf-preview]');
@@ -164,60 +78,26 @@
     });
   }
 
-  /* ────────────────────────────────────────────────────────────
-     THEME
-  ──────────────────────────────────────────────────────────── */
-  function resolveTheme() {
-    var stored = localStorage.getItem('lp-theme');
-    if (stored) return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-
-  function applyTheme(theme, invertCanvas) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('lp-theme', theme);
-    updateThemeIcons(theme === 'dark');
-    if (invertCanvas) AC.invert();
-  }
-
-  function toggleTheme() {
-    var cur = document.documentElement.getAttribute('data-theme') || 'light';
-    applyTheme(cur === 'dark' ? 'light' : 'dark', true);
-  }
-
-  var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  var SUN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-
-  function updateThemeIcons(isDark) {
-    document.querySelectorAll('.theme-btn').forEach(function (btn) {
-      btn.innerHTML = isDark ? SUN : MOON;
-      btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-    });
-  }
-
-  /* ────────────────────────────────────────────────────────────
-     DIRECTIONAL HOVER (bento cards + any .home-card)
-  ──────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────
+     DIRECTIONAL HOVER GLOW (bento cards)
+  ────────────────────────────────────────────────────────── */
   function initDirectionalHover() {
     document.addEventListener('mousemove', function (e) {
       var card = e.target.closest('.home-card');
       if (!card) return;
       var r = card.getBoundingClientRect();
-      card.style.setProperty('--card-mx', ((e.clientX - r.left) / r.width * 100) + '%');
-      card.style.setProperty('--card-my', ((e.clientY - r.top)  / r.height * 100) + '%');
+      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width  * 100) + '%');
+      card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
     });
     document.addEventListener('mouseleave', function (e) {
       var card = e.target.closest ? e.target.closest('.home-card') : null;
-      if (card) {
-        card.style.setProperty('--card-mx', '50%');
-        card.style.setProperty('--card-my', '50%');
-      }
+      if (card) { card.style.setProperty('--mx','50%'); card.style.setProperty('--my','50%'); }
     }, true);
   }
 
-  /* ────────────────────────────────────────────────────────────
+  /* ──────────────────────────────────────────────────────────
      NAV ITEMS
-  ──────────────────────────────────────────────────────────── */
+  ────────────────────────────────────────────────────────── */
   var NAV = [
     { href: 'index.html',        label: 'Home'             },
     { href: 'about.html',        label: 'About'            },
@@ -236,9 +116,9 @@
     return file || 'index.html';
   }
 
-  /* ────────────────────────────────────────────────────────────
-     BUILD SIDEBAR
-  ──────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────
+     SIDEBAR — Apple documentation style
+  ────────────────────────────────────────────────────────── */
   function buildSidebar(active) {
     var navHTML = NAV.map(function (item) {
       var cls = 'nav-link' + (item.href === active ? ' active' : '');
@@ -246,20 +126,17 @@
     }).join('');
 
     return (
-      '<div class="sidebar-controls">' +
-        '<button class="theme-btn" aria-label="Toggle theme"></button>' +
-      '</div>' +
+      '<a href="index.html" class="sidebar-photo-link">' +
+        '<div class="sidebar-photo-wrap">' +
+          '<img src="assets/photo.png" alt="Luca Pignatelli"' +
+          ' onerror="this.src=\'https://placehold.co/240x240/f5f5f7/1d1d1f?text=LP\'" />' +
+        '</div>' +
+      '</a>' +
 
       '<div class="sidebar-identity">' +
-        '<a href="index.html" class="headshot-link">' +
-          '<div class="headshot-wrap">' +
-            '<img src="assets/photo.png" alt="Luca Pignatelli" class="headshot"' +
-            ' onerror="this.src=\'https://placehold.co/300x300/e8e2d9/0d1b2a?text=LP\'" />' +
-          '</div>' +
-        '</a>' +
-        '<h1 class="sidebar-name"><a href="index.html">Luca Pignatelli</a></h1>' +
-        '<p class="sidebar-title">PhD Candidate · Calculus of Variations</p>' +
-        '<p class="sidebar-affiliation">Radboud University · Nijmegen, NL</p>' +
+        '<div class="sidebar-name"><a href="index.html">Luca Pignatelli</a></div>' +
+        '<div class="sidebar-title">PhD Candidate · Calculus of Variations</div>' +
+        '<div class="sidebar-affiliation">Radboud University · Nijmegen, NL</div>' +
       '</div>' +
 
       '<nav class="sidebar-nav" aria-label="Main navigation">' +
@@ -284,9 +161,9 @@
     );
   }
 
-  /* ────────────────────────────────────────────────────────────
-     BUILD MOBILE HEADER
-  ──────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────
+     MOBILE HEADER
+  ────────────────────────────────────────────────────────── */
   function buildMobileHeader() {
     return (
       '<button class="hamburger" id="navToggle" aria-label="Open navigation">' +
@@ -294,42 +171,54 @@
       '</button>' +
       '<a href="index.html" class="mob-identity">' +
         '<img src="assets/photo.png" alt="Luca Pignatelli" class="mob-photo"' +
-        ' onerror="this.src=\'https://placehold.co/40x40/e8e2d9/0d1b2a?text=LP\'" />' +
+        ' onerror="this.src=\'https://placehold.co/40x40/f5f5f7/1d1d1f?text=LP\'" />' +
         '<div class="mob-id-text">' +
           '<span class="mob-name">Luca Pignatelli</span>' +
           '<span class="mob-pos">PhD Candidate · Calc. of Variations</span>' +
         '</div>' +
-      '</a>' +
-      '<button class="theme-btn mob-theme" aria-label="Toggle theme"></button>'
+      '</a>'
     );
   }
 
-  /* ────────────────────────────────────────────────────────────
-     INIT
-  ──────────────────────────────────────────────────────────── */
-  function init() {
-    /* 1. Phase field canvas (all pages) */
-    AC.start();
+  /* ──────────────────────────────────────────────────────────
+     HOME TOP NAV (homepage only)
+  ────────────────────────────────────────────────────────── */
+  function buildHomeNav() {
+    var navEl = document.getElementById('home-nav');
+    if (!navEl) return;
 
+    var linksHTML = ['About','Publications','Talks','CV','Files'].map(function(label) {
+      var href = ({ About:'about.html', Publications:'publications.html',
+                    Talks:'talks.html', CV:'cv.html', Files:'files.html' })[label];
+      return '<a href="' + href + '" class="home-nav-link">' + label + '</a>';
+    }).join('');
+
+    navEl.innerHTML =
+      '<a href="index.html" class="home-nav-id">' +
+        '<img src="assets/photo.png" alt="" class="home-nav-photo"' +
+        ' onerror="this.src=\'https://placehold.co/28x28/f5f5f7/1d1d1f?text=LP\'" />' +
+        'Luca Pignatelli' +
+      '</a>' +
+      '<div class="home-nav-links">' + linksHTML + '</div>';
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     INIT
+  ────────────────────────────────────────────────────────── */
+  function init() {
     var active    = getActivePage();
     var sidebarEl = document.getElementById('sidebar');
     var headerEl  = document.getElementById('mobile-header');
 
     if (sidebarEl) sidebarEl.innerHTML = buildSidebar(active);
     if (headerEl)  headerEl.innerHTML  = buildMobileHeader();
+    buildHomeNav();
 
-    /* 2. Sync theme icons */
-    updateThemeIcons(resolveTheme() === 'dark');
-
-    /* 3. Unified click handler */
+    /* Unified click handler */
     document.addEventListener('click', function (e) {
       var sidebar = document.getElementById('sidebar');
       var toggle  = document.getElementById('navToggle');
 
-      if (e.target.closest('.theme-btn')) {
-        toggleTheme();
-        return;
-      }
       if (e.target.closest('#navToggle')) {
         if (sidebar) sidebar.classList.toggle('open');
         if (toggle)  toggle.classList.toggle('open');
@@ -348,13 +237,10 @@
       }
     });
 
-    /* 4. PDF preview (new tab) */
     initPdfPreview();
-
-    /* 5. Directional hover */
     initDirectionalHover();
 
-    /* 6. MathJax retypeset for sidebar watermark */
+    /* MathJax retypeset for sidebar watermark */
     if (window.MathJax && window.MathJax.typesetPromise && sidebarEl) {
       MathJax.typesetPromise([sidebarEl]).catch(function () {});
     }

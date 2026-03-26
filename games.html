@@ -3,51 +3,36 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Games — Luca Pignatelli</title>
-  <script>(function(){ var t=localStorage.getItem('lp-theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); document.documentElement.setAttribute('data-theme',t); })();</script>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Game-specific styles (layout in styles.css) */
     .g2048-board {
       display:grid; grid-template-columns:repeat(4,1fr); gap:7px;
-      background:#bbada0; border-radius:8px; padding:7px;
+      background:#c8bdb0; border-radius:10px; padding:7px;
       user-select:none; touch-action:none;
     }
     .g2048-cell {
       aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-      border-radius:4px; font-family:'Inter',sans-serif; font-weight:700;
-      line-height:1; transition:background .08s;
+      border-radius:6px; font-weight:700; font-family:inherit; line-height:1; transition:background .08s;
     }
     .ms-board-wrap { display:flex; justify-content:center; }
     .ms-board {
-      display:grid; gap:2px; background:var(--rule);
-      border-radius:5px; padding:3px; user-select:none;
+      display:grid; gap:2px; background:var(--rule-lt);
+      border-radius:6px; padding:3px; user-select:none;
     }
     .ms-cell {
       width:26px; height:26px; display:flex; align-items:center; justify-content:center;
-      font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600;
-      cursor:pointer; border-radius:3px; background:var(--bg-card-h);
+      font-size:.68rem; font-weight:600;
+      cursor:pointer; border-radius:4px; background:var(--bg-2);
       transition:background .1s;
     }
-    .ms-cell:hover:not(.revealed){ background:var(--gold-sub); }
+    .ms-cell:hover:not(.revealed){ background:var(--accent-bg); }
     .ms-cell.revealed { background:var(--bg); cursor:default; }
-    .ms-cell.mine-hit { background:#e85d4a !important; }
+    .ms-cell.mine-hit { background:#ff3b30 !important; }
     #snake-canvas, #life-canvas {
-      display:block; width:100%; border-radius:8px; touch-action:none;
+      display:block; width:100%; border-radius:10px; touch-action:none;
     }
     #life-canvas { cursor:crosshair; }
   </style>
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H6N2TTGC8J"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-H6N2TTGC8J', {
-      anonymize_ip: true,
-      allow_google_signals: false,
-      allow_ad_personalization_signals: false
-    });
-  </script>
 </head>
 <body>
 

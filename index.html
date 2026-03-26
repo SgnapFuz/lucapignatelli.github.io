@@ -5,65 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Luca Pignatelli &mdash; Mathematics</title>
   <meta name="description" content="Personal academic website of Luca Pignatelli, PhD candidate in Calculus of Variations at Radboud University Nijmegen." />
-
-  <script>(function(){
-    var t=localStorage.getItem('lp-theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-    document.documentElement.setAttribute('data-theme',t);
-  })();</script>
-
   <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H6N2TTGC8J"></script>
-  <script>
-    window.dataLayer=window.dataLayer||[];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js',new Date());
-    gtag('config','G-H6N2TTGC8J',{anonymize_ip:true,allow_google_signals:false,allow_ad_personalization_signals:false});
-  </script>
 </head>
 
 <body class="homepage">
 
-  <!-- Theme toggle -->
-  <div class="home-theme-wrap">
-    <button class="theme-btn" aria-label="Toggle theme"></button>
-  </div>
+  <!-- Floating nav (filled by nav.js) -->
+  <nav class="home-nav" id="home-nav"></nav>
 
-  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <!-- ── HERO ──────────────────────────────────────────────── -->
   <section class="home-hero">
-
     <div class="home-photo-wrap">
       <img
         src="assets/photo.png"
         alt="Luca Pignatelli"
         class="home-photo"
-        onerror="this.src='https://placehold.co/400x400/e8e2d9/0d1b2a?text=LP'"
+        onerror="this.src='https://placehold.co/400x400/f5f5f7/1d1d1f?text=LP'"
       />
     </div>
-
-    <!-- Frosted glass pill for readability over canvas -->
-    <div class="home-text-bg">
-      <h1 class="home-name">Luca Pignatelli</h1>
-      <p class="home-title">PhD Candidate &middot; Calculus of Variations</p>
-      <p class="home-affil">Radboud University &middot; Nijmegen, Netherlands</p>
-      <div class="home-social">
-        <a href="mailto:luca.pignatelli@ru.nl" class="social-btn">Email</a>
-        <a href="https://arxiv.org/search/?searchtype=author&query=Pignatelli%2C+Luca" target="_blank" rel="noopener" class="social-btn">arXiv</a>
-        <a href="https://www.ru.nl/en/people/pignatelli-l" target="_blank" rel="noopener" class="social-btn">Radboud</a>
-        <a href="https://scholar.google.com" target="_blank" rel="noopener" class="social-btn">Scholar</a>
-      </div>
+    <h1 class="home-name">Luca Pignatelli</h1>
+    <p class="home-title">PhD Candidate &middot; Calculus of Variations</p>
+    <p class="home-affil">Radboud University &middot; Nijmegen, Netherlands</p>
+    <div class="home-social">
+      <a href="mailto:luca.pignatelli@ru.nl" class="social-btn">Email</a>
+      <a href="https://arxiv.org/search/?searchtype=author&query=Pignatelli%2C+Luca" target="_blank" rel="noopener" class="social-btn">arXiv</a>
+      <a href="https://www.ru.nl/en/people/pignatelli-l" target="_blank" rel="noopener" class="social-btn">Radboud</a>
+      <a href="https://scholar.google.com" target="_blank" rel="noopener" class="social-btn">Scholar</a>
     </div>
-
     <div class="home-divider"></div>
   </section>
 
-  <!-- ── BENTO GRID ───────────────────────────────────────── -->
+  <!-- ── BENTO GRID ─────────────────────────────────────────── -->
   <div class="home-cards">
 
-    <!-- Row 1: About (s4) + Publications featured (s2) -->
-    <a href="about.html" class="home-card home-card-s4 card-feat">
+    <!-- Row 1: About (wide) + Publications (narrow) -->
+    <a href="about.html" class="home-card home-card-s4">
       <div class="card-label">About</div>
       <p class="card-title">Research &amp; Background</p>
       <p class="card-desc">Phase separation &middot; &Gamma;-convergence &middot; Homogenisation &middot; Cahn&ndash;Hilliard-type energies in heterogeneous periodic media when two microscales &varepsilon; &Ll; &delta; &Ll; 1 compete simultaneously.</p>
@@ -77,7 +55,7 @@
       <span class="card-arrow" style="margin-top:auto">All publications &rarr;</span>
     </a>
 
-    <!-- Row 2: Talks (s2) + Teaching (s2) + CV stat (s2) -->
+    <!-- Row 2: Talks + Teaching + CV stat -->
     <a href="talks.html" class="home-card home-card-s2">
       <div class="card-label">Talks</div>
       <p class="card-title">Seminars &amp; Posters</p>
@@ -98,7 +76,7 @@
       <span class="card-arrow" style="margin-top:auto">View CV &rarr;</span>
     </a>
 
-    <!-- Row 3: Other Math (s3) + Misc (s3) -->
+    <!-- Row 3: Other Math + Misc -->
     <a href="other.html" class="home-card home-card-s3">
       <div class="card-label">Other Mathematics</div>
       <p class="card-title">Theses &amp; MSc Projects</p>
@@ -113,7 +91,7 @@
       <span class="card-arrow">Explore &rarr;</span>
     </a>
 
-    <!-- Row 4: Games (s4) + Files (s2) -->
+    <!-- Row 4: Games (wide) + Files -->
     <a href="games.html" class="home-card home-card-s4 card-games">
       <div class="card-label">Games</div>
       <p class="card-title">2048 &middot; Snake &middot; Minesweeper &middot; Conway&rsquo;s Life</p>
